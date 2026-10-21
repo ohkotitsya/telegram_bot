@@ -1,0 +1,126 @@
+# ---------------------------------------------------------------------------
+# Secrets — NEVER commit these
+# ---------------------------------------------------------------------------
+.env
+.env.*
+!.env.example
+
+# ---------------------------------------------------------------------------
+# Python
+# ---------------------------------------------------------------------------
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+
+# Byte-compiled / optimized
+.Python
+
+# Distribution / packaging
+build/
+dist/
+sdist/
+*.egg-info/
+*.egg
+.eggs/
+pip-wheel-metadata/
+
+# Unit test / coverage
+.pytest_cache/
+.coverage
+.coverage.*
+coverage.xml
+htmlcov/
+.tox/
+.nox/
+.cache
+
+# Type checkers / linters
+.mypy_cache/
+.dmypy.json
+.dmypy.jsonl
+.pyre/
+.pytype/
+.ruff_cache/
+.flake8
+
+# ---------------------------------------------------------------------------
+# Virtual environments
+# ---------------------------------------------------------------------------
+.venv/
+venv/
+env/
+ENV/
+env.bak/
+venv.bak/
+
+# NOTE: venv/bin/ and venv/lib/ are covered above. If your deploy target
+# expects a committed virtualenv (unusual — most build from
+# requirements.txt), you must remove the venv/ rule for that path.
+
+# ---------------------------------------------------------------------------
+# Databases & local state
+# ---------------------------------------------------------------------------
+*.db
+*.sqlite
+*.sqlite3
+*.db-journal
+data/
+instance/
+
+# ---------------------------------------------------------------------------
+# Logs
+# ---------------------------------------------------------------------------
+logs/
+*.log
+*.log.*
+npm-debug.log*
+yarn-error.log*
+
+# ---------------------------------------------------------------------------
+# Secrets, credentials & keys (belt-and-braces — even if renamed)
+# ---------------------------------------------------------------------------
+*.pem
+*.key
+*.p12
+*.pfx
+secrets/
+secrets.*
+credentials.json
+service-account*.json
+id_rsa
+id_ed25519
+
+# ---------------------------------------------------------------------------
+# Editors / OS
+# ---------------------------------------------------------------------------
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# ---------------------------------------------------------------------------
+# Project specific
+# ---------------------------------------------------------------------------
+# Local overrides used while developing
+.local/
+tmp/
+
+# ---------------------------------------------------------------------------
+# MUST BE COMMITTED — do not add these to the ignore list.
+# The deploy build needs them:
+#   main.py              entry point
+#   requirements.txt     pip install -r requirements.txt
+#   Dockerfile           container image definition
+#   docker-compose.yml   local/host orchestration
+#   Procfile             process definition (Heroku/Render/Cloud Run)
+#   render.yaml          Render blueprint
+#   railway.json         Railway config
+#   .env.example         environment variable TEMPLATE (no real secrets!)
+#   ai/ config/ handlers/  application source
+# ---------------------------------------------------------------------------
