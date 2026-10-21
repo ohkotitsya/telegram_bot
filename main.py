@@ -4,11 +4,8 @@ Telegram Bot with AI Chat — powered by Claude (Anthropic).
 Entry point. Run with:  python main.py
 """
 
-import sys
 import logging
-
-from config import TELEGRAM_BOT_TOKEN, AI_AUTH_AVAILABLE
-from handlers import cmd_start, cmd_clear, cmd_help, cmd_search, handle_message
+import sys
 
 from telegram.ext import (
     ApplicationBuilder,
@@ -16,6 +13,9 @@ from telegram.ext import (
     MessageHandler,
     filters,
 )
+
+from config import AI_AUTH_AVAILABLE, TELEGRAM_BOT_TOKEN
+from handlers import cmd_clear, cmd_help, cmd_search, cmd_start, handle_message
 
 # ---------------------------------------------------------------------------
 # Logging
@@ -32,10 +32,7 @@ logger = logging.getLogger(__name__)
 # ---------------------------------------------------------------------------
 def main() -> None:
     if not TELEGRAM_BOT_TOKEN:
-        sys.exit(
-            "TELEGRAM_BOT_TOKEN is not set. "
-            "Copy .env.example to .env and fill in your token."
-        )
+        sys.exit("TELEGRAM_BOT_TOKEN is not set. Copy .env.example to .env and fill in your token.")
 
     if not AI_AUTH_AVAILABLE:
         sys.exit(

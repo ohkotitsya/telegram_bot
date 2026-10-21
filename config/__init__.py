@@ -1,9 +1,14 @@
 """Config package — loads environment variables and app settings."""
 
 import os
+
 from dotenv import load_dotenv
 
-load_dotenv()
+# Load .env from the project root. Set BOT_SKIP_DOTENV=1 to ignore it — useful
+# in tests (so a developer's real credentials never leak into a test run) and
+# on hosts where secrets are injected as real environment variables.
+if not os.getenv("BOT_SKIP_DOTENV"):
+    load_dotenv()
 
 # Telegram
 TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN", "")

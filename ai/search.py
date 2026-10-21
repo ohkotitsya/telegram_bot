@@ -6,16 +6,18 @@ server-side web_search tool, so we search ourselves with DDGS
 """
 
 import logging
+
 from ddgs import DDGS
+
 from ai.client import _client  # reuse the same provider/client
-from config import AI_MODEL, AI_MAX_TOKENS
+from config import AI_MAX_TOKENS, AI_MODEL
 
 logger = logging.getLogger(__name__)
 
 MAX_RESULTS = 8  # web results to fetch
-MAX_NEWS = 5     # news results to fetch
+MAX_NEWS = 5  # news results to fetch
 RESULT_MAX_CHARS = 1500  # snippet length cap per result
-FETCH_TOP_PAGES = 3      # top results whose full page content gets read
+FETCH_TOP_PAGES = 3  # top results whose full page content gets read
 
 
 # ---------------------------------------------------------------------------
@@ -31,22 +33,22 @@ def needs_web(query: str) -> bool:
         response = _client.messages.create(
             model=AI_MODEL,
             max_tokens=512,
-            messages=[{
-                "role": "user",
-                "content": (
-                    "Decide if this user message needs a live web search to answer "
-                    "correctly. Answer with exactly one word:\n"
-                    "- SEARCH if it's about current events, news, prices, weather, "
-                    "sports scores, recent releases, or anything time-sensitive.\n"
-                    "- CHAT if it can be answered from general knowledge, or it's "
-                    "conversation, opinion, coding help, math, or a definition.\n\n"
-                    f"MESSAGE: {query}"
-                ),
-            }],
+            messages=[
+                {
+                    "role": "user",
+                    "content": (
+                        "Decide if this user message needs a live web search to answer "
+                        "correctly. Answer with exactly one word:\n"
+                        "- SEARCH if it's about current events, news, prices, weather, "
+                        "sports scores, recent releases, or anything time-sensitive.\n"
+                        "- CHAT if it can be answered from general knowledge, or it's "
+                        "conversation, opinion, coding help, math, or a definition.\n\n"
+                        f"MESSAGE: {query}"
+                    ),
+                }
+            ],
         )
-        verdict = next(
-            (b.text for b in response.content if b.type == "text"), ""
-        ).strip().upper()
+        verdict = next((b.text for b in response.content if b.type == "text"), "").strip().upper()
         return verdict.startswith("SEARCH")
     except Exception as exc:
         logger.warning("needs_web classifier failed, defaulting to CHAT: %s", exc)
@@ -72,7 +74,9 @@ def _ddg_news(query: str) -> list[dict]:
     """DuckDuckGo news results."""
     try:
         with DDGS() as ddgs:
-            return list(ddgs.news(query, region="wt-wt", safesearch="moderate", max_results=MAX_NEWS))
+            return list(
+                ddgs.news(query, region="wt-wt", safesearch="moderate", max_results=MAX_NEWS)
+            )
     except Exception as exc:
         logger.error("DuckDuckGo news search failed: %s", exc)
         return []
@@ -94,11 +98,17 @@ def _wikipedia(query: str) -> list[dict]:
         with urllib.request.urlopen(req, timeout=10) as resp:
             data = json.loads(resp.read().decode())
         for item in data.get("query", {}).get("search", []):
-            results.append({
-                "title": item.get("title", ""),
-                "href": "https://en.wikipedia.org/wiki/" + item.get("title", "").replace(" ", "_"),
-                "body": item.get("snippet", "").replace("<span class=\"searchmatch\">", "").replace("</span>", ""),
-            })
+            title = item.get("title", "")
+            snippet = item.get("snippet", "")
+            results.append(
+                {
+                    "title": title,
+                    "href": "https://en.wikipedia.org/wiki/" + title.replace(" ", "_"),
+                    "body": snippet.replace('<span class="searchmatch">', "").replace(
+                        "</span>", ""
+                    ),
+                }
+            )
     except Exception as exc:
         logger.error("Wikipedia search failed: %s", exc)
     return results
@@ -115,7 +125,7 @@ def _fetch_page(url: str, max_chars: int = 3000) -> str:
             html = resp.read(500_000).decode("utf-8", errors="ignore")
 
         # Strip scripts, styles, tags — keep readable text
-        html = re.sub(r"<(script|style)[^>]*>.*?</\1>", " ", html, flags=re.I | re.S)
+        html = re.sub(r"<(script|style)[^>]*>.*?</\1>", " ", html, flags=re.IGNORECASE | re.DOTALL)
         text = re.sub(r"<[^>]+>", " ", html)
         text = re.sub(r"\s+", " ", text).strip()
 
@@ -152,7 +162,7 @@ def search_web(query: str, include_news: bool = True, include_wiki: bool = True)
         if href and href not in seen:
             seen.add(href)
             unique.append(r)
-    results = unique[:MAX_RESULTS + MAX_NEWS]
+    results = unique[: MAX_RESULTS + MAX_NEWS]
 
     if not results:
         return "🔍 I couldn't find any results for that."
@@ -187,18 +197,20 @@ def search_web(query: str, include_news: bool = True, include_wiki: bool = True)
         response = _client.messages.create(
             model=AI_MODEL,
             max_tokens=AI_MAX_TOKENS,
-            messages=[{
-                "role": "user",
-                "content": (
-                    "You are a search engine assistant. Below are web search results for a query, "
-                    "including the full page content of the top results. "
-                    "Write a clear, complete answer to the query using ONLY these results. "
-                    "If a table, ranking, or numbers are asked for, include the actual data. "
-                    "Cite sources inline like [1], [2]. Reply in the query's language.\n\n"
-                    f"QUERY: {query}\n\n"
-                    f"SEARCH RESULTS:\n{context}"
-                ),
-            }],
+            messages=[
+                {
+                    "role": "user",
+                    "content": (
+                        "You are a search engine assistant. Below are web search results "
+                        "for a query, including the full page content of the top results. "
+                        "Write a clear, complete answer to the query using ONLY these results. "
+                        "If a table, ranking, or numbers are asked for, include the actual data. "
+                        "Cite sources inline like [1], [2]. Reply in the query's language.\n\n"
+                        f"QUERY: {query}\n\n"
+                        f"SEARCH RESULTS:\n{context}"
+                    ),
+                }
+            ],
         )
         answer = next(
             (b.text for b in response.content if b.type == "text"),
@@ -215,8 +227,7 @@ def search_web(query: str, include_news: bool = True, include_wiki: bool = True)
     if not answer:
         # AI failed — give the user the raw results directly
         raw = "\n\n".join(
-            f"🔗 [{r.get('title', '')}]({r.get('href', '')})\n{r.get('body', '')}"
-            for r in results
+            f"🔗 [{r.get('title', '')}]({r.get('href', '')})\n{r.get('body', '')}" for r in results
         )
         return raw[:4000] + source_block
 

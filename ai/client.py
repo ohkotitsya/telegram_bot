@@ -1,7 +1,8 @@
 """Claude AI client — manages conversation history and API calls."""
 
 import anthropic
-from config import AI_MODEL, AI_MAX_TOKENS, MAX_HISTORY, SYSTEM_PROMPT
+
+from config import AI_MAX_TOKENS, AI_MODEL, MAX_HISTORY, SYSTEM_PROMPT
 
 # Anthropic client (reads ANTHROPIC_API_KEY from env)
 _client = anthropic.Anthropic()
@@ -15,16 +16,14 @@ def ask_claude(chat_id: int, user_message: str) -> str:
     history = _conversations.setdefault(chat_id, [])
     history.append({"role": "user", "content": user_message})
 
-    # Trim old messages so we don't exceed context limits
-    if len(history) > MAX_HISTORY * 2:
-        history[:] = history[-(MAX_HISTORY * 2):]
-
+    # Send a snapshot of the history. The SDK receives its own list, so the
+    # appends below cannot mutate a request that is still in flight.
     response = _client.messages.create(
         model=AI_MODEL,
         max_tokens=AI_MAX_TOKENS,
         system=SYSTEM_PROMPT,
         thinking={"type": "adaptive"},
-        messages=history,
+        messages=list(history),
     )
 
     # Extract the text reply
@@ -34,6 +33,12 @@ def ask_claude(chat_id: int, user_message: str) -> str:
     )
 
     history.append({"role": "assistant", "content": assistant_text})
+
+    # Trim old messages so we don't exceed context limits. This runs after the
+    # assistant turn is stored, otherwise the history could end up one message
+    # over the cap.
+    if len(history) > MAX_HISTORY * 2:
+        history[:] = history[-(MAX_HISTORY * 2) :]
     return assistant_text
 
 
