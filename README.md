@@ -2,6 +2,22 @@
 
 A Telegram chatbot powered by **Claude AI** (Anthropic). Send any message and get intelligent AI responses with conversation memory.
 
+## Changelog
+
+### v1.1.0
+
+- 💬 **`/chat`** — talk directly to the AI. Messages skip the "does this need
+  a web search?" classifier and the whole search pipeline, so replies are
+  faster and use fewer tokens. The mode is per chat; send `/chat` again to
+  switch back. Using `/search` turns it off.
+
+### v1.0.0
+
+- 🤖 Telegram bot with Claude, conversation memory and per-user history
+- 🔍 Web search (DuckDuckGo + Wikipedia) with AI summarization and sources
+- 🐳 Docker image and GitHub Actions CI
+- 🧪 47-test suite, running fully offline
+
 ## Features
 
 - 💬 Natural conversation with Claude AI (Sonnet 5.5)
