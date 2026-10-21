@@ -1,6 +1,6 @@
 [project]
 name = "telegram-bot"
-version = "1.1.0"
+version = "0.0.1"
 description = "Telegram chatbot powered by Claude (Anthropic), with web search"
 readme = "README.md"
 requires-python = ">=3.11"
