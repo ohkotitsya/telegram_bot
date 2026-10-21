@@ -14,10 +14,27 @@ to be reusable: `ask_claude()`, `search_web()` and the conversation store do
 not depend on Telegram and can be driven by a Flet UI, a CLI, or any other
 front end.
 
-> **Status: beta.** This release is `v1.0.0-beta.1` — the API may still
+> **Status: beta.** This release is `v1.0.0-beta.2` — the API may still
 > change as these pieces get extracted into the Flet project.
 
 ## Changelog
+
+### v1.0.0-beta.2
+
+Two bugs found during manual testing are fixed.
+
+- 🐛 **Tool output no longer leaks into replies.** The provider behind the
+  local proxy can attach its own memory tool, and the tool's output arrived
+  as extra text blocks in the response — so the bot sent raw JSON
+  (`[Skill result: memory_search]{...}`) instead of an answer. Replies are
+  now filtered (`ai/client.py::extract_text`), the system prompt tells the
+  model to answer without those tools, and a reply that holds nothing but
+  tool output is retried. The web-search path is covered too.
+- 🐛 **`/chat` no longer crashes.** Telegram `Message` objects are
+  immutable, and the handler was writing to `update.message.text`, which
+  dropped the request with `AttributeError`. The reply is now built by
+  `build_reply()` and sent as is.
+- 🧪 56-test suite, running fully offline
 
 ### v1.0.0-beta.1
 
