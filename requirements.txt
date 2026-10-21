@@ -1,0 +1,7 @@
+python-telegram-bot>=21.0
+# >=1.13.0 : required for `thinking={"type": "adaptive"}` (ThinkingConfigAdaptiveParam)
+# <2.0.0   : verified against the 1.x SDK; 2.x is unverified against the
+#            ANTHROPIC_AUTH_TOKEN / ANTHROPIC_BASE_URL proxy.
+anthropic>=1.13.0,<2.0.0
+python-dotenv>=1.0
+ddgs>=9.0
