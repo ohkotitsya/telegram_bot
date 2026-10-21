@@ -1,9 +1,11 @@
 """Message handler — answers user text, auto-searching the web when needed."""
 
 import logging
+
 import anthropic
 from telegram import Update
 from telegram.ext import ContextTypes
+
 from ai import ask_claude, search_web
 from ai.search import needs_web
 

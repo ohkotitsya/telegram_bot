@@ -1,0 +1,51 @@
+# Keep the build context small and secrets out of the image.
+
+# Secrets — never bake these into an image
+.env
+.env.*
+!.env.example
+
+# Version control & CI
+.git
+.gitignore
+.gitattributes
+.github
+
+# Python caches
+__pycache__/
+*.py[cod]
+*.so
+.venv/
+venv/
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.coverage
+htmlcov/
+
+# Build artifacts
+build/
+dist/
+*.egg-info/
+
+# Local state
+data/
+instance/
+*.db
+*.sqlite3
+logs/
+*.log
+
+# Editors / OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# Docs & tooling not needed at runtime
+README.md
+pyproject.toml
+tests/
+Dockerfile
+docker-compose.yml
+.dockerignore

@@ -3,6 +3,7 @@
 import anthropic
 from telegram import Update
 from telegram.ext import ContextTypes
+
 from ai.client import clear_history
 from ai.search import search_web
 
@@ -47,8 +48,7 @@ async def cmd_search(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None
     """Handle /search <query> — search the web and answer with sources."""
     if not context.args:
         await update.message.reply_text(
-            "🔍 Usage: /search <what to look for>\n\n"
-            "Example: /search latest python news"
+            "🔍 Usage: /search <what to look for>\n\nExample: /search latest python news"
         )
         return
 
