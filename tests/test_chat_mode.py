@@ -85,6 +85,45 @@ async def test_chat_toggles_off(fake_update, fake_context):
     assert "Direct chat off" in reply
 
 
+async def test_chat_with_text_does_not_mutate_the_message(fake_update, fake_context):
+    """The Telegram Message object is immutable — /chat must not write to it.
+
+    Regression test: assigning to update.message.text raises
+    AttributeError("Attribute `text` of class `Message` can't be set!"),
+    which crashed the handler in production.
+    """
+    from handlers import cmd_chat
+
+    fake_context.args = ["hello", "there"]
+
+    class ImmutableMessage:
+        """Stands in for telegram.Message, which refuses attribute writes."""
+
+        def __init__(self):
+            object.__setattr__(self, "text", "original text")
+            object.__setattr__(self, "chat", MagicMock(send_action=AsyncMock()))
+            object.__setattr__(self, "reply_text", AsyncMock())
+
+        def __setattr__(self, name, value):
+            if name == "text" and hasattr(self, "text"):
+                raise AssertionError("the handler tried to mutate the Telegram Message")
+            object.__setattr__(self, name, value)
+
+    fake_update.message = ImmutableMessage()
+    fake_update.message.reply_text = AsyncMock()
+    fake_update.message.chat.send_action = AsyncMock()
+
+    with (
+        patch("handlers.messages.needs_web"),
+        patch("handlers.messages.ask_claude", return_value="Hi"),
+    ):
+        await cmd_chat(fake_update, fake_context)
+
+    # The original text is untouched and the reply was sent.
+    assert fake_update.message.text == "original text"
+    fake_update.message.reply_text.assert_awaited_once()
+
+
 async def test_chat_with_text_answers_directly(fake_update, fake_context):
     """/chat <text> sends the text to the AI without touching the search path."""
     from handlers import cmd_chat
