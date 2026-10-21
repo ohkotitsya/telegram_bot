@@ -8,6 +8,7 @@ A Telegram chatbot powered by **Claude AI** (Anthropic). Send any message and ge
 - 🧠 Remembers conversation context per user
 - 🌍 Replies in the same language you write
 - 🔍 Searches the web when a question needs current information
+- 💬 `/chat` talks straight to the AI — no search, fewer tokens
 - 🗑️ Clear history with `/clear`
 - ⚡ Handles errors and rate limits gracefully
 - 🐳 Ships with a Docker image and CI — clone and run, no manual setup
@@ -134,18 +135,34 @@ offline and never touches your real credentials.
 |----------|------------------------------|
 | `/start` | Welcome message              |
 | `/clear` | Clear conversation history   |
+| `/chat` | Talk directly to the AI, skipping web search |
 | `/search` | Search the web and answer with sources |
 | `/help`  | Show help                    |
 
+### Direct chat (`/chat`)
 
-## Bot Commands
+By default every message goes through a router: the bot asks the AI whether
+the question needs live web results, and only then decides between answering
+from its own knowledge or running the full search pipeline.
 
-| Command  | Description                  |
-|----------|------------------------------|
-| `/start` | Welcome message              |
-| `/clear` | Clear conversation history   |
-| `/search` | Search the web and answer with sources |
-| `/help`  | Show help                    |
+`/chat` turns that routing off. Your messages go straight to Claude, which
+means:
+
+- **No classifier call** — one less round-trip to the API per message
+- **No web search** — no DuckDuckGo/Wikipedia calls, no page fetching
+- **Faster and cheaper** — especially for long conversations, where the
+  search path would otherwise pull a large context into every request
+
+Send `/chat` again to switch back. The mode is per chat, so it doesn't affect
+other users of the same bot.
+
+```
+/chat                     → toggles direct chat on/off
+/chat what's a closure?   → answers that message directly, mode unchanged
+```
+
+Using `/search` turns direct chat off, since asking for a search means you
+want the search path.
 
 ## Deploy
 
