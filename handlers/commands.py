@@ -1,4 +1,4 @@
-"""Command handlers — /start, /clear, /help, /search."""
+"""Command handlers — /start, /clear, /chat, /help, /search."""
 
 import anthropic
 from telegram import Update
@@ -6,6 +6,7 @@ from telegram.ext import ContextTypes
 
 from ai.client import clear_history
 from ai.search import search_web
+from handlers.chat_mode import is_direct_chat, set_direct_chat, toggle_direct_chat
 
 
 async def cmd_start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -16,6 +17,7 @@ async def cmd_start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         "Commands:\n"
         "/start  — show this message\n"
         "/clear  — clear conversation history\n"
+        "/chat   — talk directly to the AI (no web search)\n"
         "/search — search the web like Google\n"
         "/help   — show help"
     )
@@ -38,10 +40,47 @@ async def cmd_help(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         "*Commands:*\n"
         "/start — welcome message\n"
         "/clear — forget our conversation\n"
+        "/chat — talk directly to the AI, skipping web search\n"
         "/search \\[query\\] — search the web like Google\n"
         "/help  — this message",
         parse_mode="Markdown",
     )
+
+
+async def cmd_chat(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    """Handle /chat — toggle direct chat mode.
+
+    With direct chat on, every message goes straight to Claude. That skips
+    the "does this need a web search?" classifier call and the whole search
+    pipeline, which saves tokens and makes replies noticeably faster.
+
+    With no arguments the mode is toggled. With an argument, that text is
+    sent to the AI immediately and the mode stays as it was.
+    """
+    if context.args:
+        # /chat <text> — answer this message directly, no mode change.
+        from handlers.messages import handle_message
+
+        update.message.text = " ".join(context.args)
+        await handle_message(update, context, force_direct=True)
+        return
+
+    enabled = toggle_direct_chat(context)
+
+    if enabled:
+        await update.message.reply_text(
+            "💬 *Direct chat on.*\n\n"
+            "Your messages now go straight to the AI — no web search, no "
+            "classifier call. Faster and cheaper.\n\n"
+            "Send `/chat` again to turn it off."
+        )
+    else:
+        await update.message.reply_text(
+            "🔍 *Direct chat off.*\n\n"
+            "I'm back to my usual behaviour: I decide on my own whether a "
+            "question needs a web search.\n\n"
+            "Send `/chat` to turn it back on."
+        )
 
 
 async def cmd_search(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -51,6 +90,11 @@ async def cmd_search(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None
             "🔍 Usage: /search <what to look for>\n\nExample: /search latest python news"
         )
         return
+
+    # Asking for a search means the user wants the search pipeline, so leave
+    # direct chat mode if it was on.
+    if is_direct_chat(context):
+        set_direct_chat(context, False)
 
     query = " ".join(context.args)
 

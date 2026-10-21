@@ -15,7 +15,7 @@ from telegram.ext import (
 )
 
 from config import AI_AUTH_AVAILABLE, TELEGRAM_BOT_TOKEN
-from handlers import cmd_clear, cmd_help, cmd_search, cmd_start, handle_message
+from handlers import cmd_chat, cmd_clear, cmd_help, cmd_search, cmd_start, handle_message
 
 # ---------------------------------------------------------------------------
 # Logging
@@ -45,6 +45,7 @@ def main() -> None:
 
     app.add_handler(CommandHandler("start", cmd_start))
     app.add_handler(CommandHandler("clear", cmd_clear))
+    app.add_handler(CommandHandler("chat", cmd_chat))
     app.add_handler(CommandHandler("help", cmd_help))
     app.add_handler(CommandHandler("search", cmd_search))
     app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))
