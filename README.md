@@ -57,6 +57,7 @@ pip install -e ".[dev]"
   Telegram, send `/newbot`, and follow the steps.
 - **Anthropic API Key**: sign up at
   [console.anthropic.com](https://console.anthropic.com/) and create a key.
+- **THIRD-PART API HOST**: required `ANTHROPIC_AUTH_TOKEN` + `ANTHROPIC_BASE_URL`
 
 Put them in `.env`:
 
