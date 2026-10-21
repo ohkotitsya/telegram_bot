@@ -59,10 +59,16 @@ async def cmd_chat(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """
     if context.args:
         # /chat <text> — answer this message directly, no mode change.
-        from handlers.messages import handle_message
+        from handlers.messages import build_reply
 
-        update.message.text = " ".join(context.args)
-        await handle_message(update, context, force_direct=True)
+        text = " ".join(context.args)
+        await update.message.chat.send_action("typing")
+
+        reply = build_reply(update.effective_chat.id, text, context, force_direct=True)
+
+        # Telegram messages have a 4096-char limit — split if needed
+        for i in range(0, len(reply), 4096):
+            await update.message.reply_text(reply[i : i + 4096])
         return
 
     enabled = toggle_direct_chat(context)

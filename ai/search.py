@@ -9,7 +9,7 @@ import logging
 
 from ddgs import DDGS
 
-from ai.client import _client  # reuse the same provider/client
+from ai.client import _client, extract_text  # reuse the same provider/client
 from config import AI_MAX_TOKENS, AI_MODEL
 
 logger = logging.getLogger(__name__)
@@ -18,6 +18,14 @@ MAX_RESULTS = 8  # web results to fetch
 MAX_NEWS = 5  # news results to fetch
 RESULT_MAX_CHARS = 1500  # snippet length cap per result
 FETCH_TOP_PAGES = 3  # top results whose full page content gets read
+
+# The classifier and the summarizer talk to the same provider, which may
+# attach a memory/skill tool. Asking for a plain answer keeps their replies
+# clean.
+NO_TOOLS_PROMPT = (
+    "Answer directly and only with what was asked. "
+    "Do not use any memory, search, or skill tools. Never mention memory."
+)
 
 
 # ---------------------------------------------------------------------------
@@ -33,6 +41,7 @@ def needs_web(query: str) -> bool:
         response = _client.messages.create(
             model=AI_MODEL,
             max_tokens=512,
+            system=NO_TOOLS_PROMPT,
             messages=[
                 {
                     "role": "user",
@@ -48,7 +57,7 @@ def needs_web(query: str) -> bool:
                 }
             ],
         )
-        verdict = next((b.text for b in response.content if b.type == "text"), "").strip().upper()
+        verdict = extract_text(response).strip().upper()
         return verdict.startswith("SEARCH")
     except Exception as exc:
         logger.warning("needs_web classifier failed, defaulting to CHAT: %s", exc)
@@ -197,6 +206,7 @@ def search_web(query: str, include_news: bool = True, include_wiki: bool = True)
         response = _client.messages.create(
             model=AI_MODEL,
             max_tokens=AI_MAX_TOKENS,
+            system=NO_TOOLS_PROMPT,
             messages=[
                 {
                     "role": "user",
@@ -212,10 +222,7 @@ def search_web(query: str, include_news: bool = True, include_wiki: bool = True)
                 }
             ],
         )
-        answer = next(
-            (b.text for b in response.content if b.type == "text"),
-            "",
-        ).strip()
+        answer = extract_text(response)
     except Exception as exc:
         logger.error("AI summarization failed: %s", exc)
         answer = ""  # fall back to raw results below
