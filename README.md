@@ -2,6 +2,34 @@
 
 A Telegram chatbot powered by **Claude AI** (Anthropic). Send any message and get intelligent AI responses with conversation memory.
 
+## 🔮 Roadmap — porting to a desktop app with Flet
+
+This project is the **first version** of the bot. The same AI core (`ai/` and
+`config/`) is meant to be **ported into another project** that runs alongside
+the [Flet](https://flet.dev) library to build a desktop application — similar
+in spirit to the standalone executables like `Claude.exe`.
+
+In other words, Telegram is the current interface, but the AI layer is written
+to be reusable: `ask_claude()`, `search_web()` and the conversation store do
+not depend on Telegram and can be driven by a Flet UI, a CLI, or any other
+front end.
+
+> **Status: beta.** This release is `v1.0.0-beta.1` — the API may still
+> change as these pieces get extracted into the Flet project.
+
+## Changelog
+
+### v1.0.0-beta.1
+
+- 💬 **`/chat`** — talk directly to the AI. Messages skip the "does this need
+  a web search?" classifier and the whole search pipeline, so replies are
+  faster and use fewer tokens. The mode is per chat; send `/chat` again to
+  switch back. Using `/search` turns it off.
+- 🤖 Telegram bot with Claude, conversation memory and per-user history
+- 🔍 Web search (DuckDuckGo + Wikipedia) with AI summarization and sources
+- 🐳 Docker image and GitHub Actions CI
+- 🧪 47-test suite, running fully offline
+
 ## Features
 
 - 💬 Natural conversation with Claude AI (Sonnet 5.5)
