@@ -1,8 +1,8 @@
-# 🤖 Telegram AI Chatbot
+# Telegram AI Chatbot
 
 A Telegram chatbot powered by **Claude AI** (Anthropic). Send any message and get intelligent AI responses with conversation memory.
 
-## 🔮 Roadmap — porting to a desktop app with Flet
+## Roadmap — porting to a desktop app with Flet
 
 This project is the **first version** of the bot. The same AI core (`ai/` and
 `config/`) is meant to be **ported into another project** that runs alongside
@@ -23,40 +23,40 @@ front end.
 
 Two bugs found during manual testing are fixed.
 
-- 🐛 **Tool output no longer leaks into replies.** The provider behind the
+-  **Tool output no longer leaks into replies.** The provider behind the
   local proxy can attach its own memory tool, and the tool's output arrived
   as extra text blocks in the response — so the bot sent raw JSON
   (`[Skill result: memory_search]{...}`) instead of an answer. Replies are
   now filtered (`ai/client.py::extract_text`), the system prompt tells the
   model to answer without those tools, and a reply that holds nothing but
   tool output is retried. The web-search path is covered too.
-- 🐛 **`/chat` no longer crashes.** Telegram `Message` objects are
+-  **`/chat` no longer crashes.** Telegram `Message` objects are
   immutable, and the handler was writing to `update.message.text`, which
   dropped the request with `AttributeError`. The reply is now built by
   `build_reply()` and sent as is.
-- 🧪 56-test suite, running fully offline
+-  56-test suite, running fully offline
 
 ### v1.0.0-beta.1
 
-- 💬 **`/chat`** — talk directly to the AI. Messages skip the "does this need
+-  **`/chat`** — talk directly to the AI. Messages skip the "does this need
   a web search?" classifier and the whole search pipeline, so replies are
   faster and use fewer tokens. The mode is per chat; send `/chat` again to
   switch back. Using `/search` turns it off.
-- 🤖 Telegram bot with Claude, conversation memory and per-user history
-- 🔍 Web search (DuckDuckGo + Wikipedia) with AI summarization and sources
-- 🐳 Docker image and GitHub Actions CI
-- 🧪 47-test suite, running fully offline
+-  Telegram bot with Claude, conversation memory and per-user history
+-  Web search (DuckDuckGo + Wikipedia) with AI summarization and sources
+-  Docker image and GitHub Actions CI
+-  47-test suite, running fully offline
 
 ## Features
 
-- 💬 Natural conversation with Claude AI (Sonnet 5.5)
-- 🧠 Remembers conversation context per user
-- 🌍 Replies in the same language you write
-- 🔍 Searches the web when a question needs current information
-- 💬 `/chat` talks straight to the AI — no search, fewer tokens
-- 🗑️ Clear history with `/clear`
-- ⚡ Handles errors and rate limits gracefully
-- 🐳 Ships with a Docker image and CI — clone and run, no manual setup
+-  Natural conversation with Claude AI (Sonnet 5.5)
+-  Remembers conversation context per user
+-  Replies in the same language you write
+-  Searches the web when a question needs current information
+-  `/chat` talks straight to the AI — no search, fewer tokens
+-  Clear history with `/clear`
+-  Handles errors and rate limits gracefully
+-  Ships with a Docker image and CI — clone and run, no manual setup
 
 ## Quick start (Docker — recommended)
 
